@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Historique des menus</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; background:#f4f6f8; padding:10px; }
+    h1 { text-align:center; color:#2c3e50; }
+    table { width:100%; border-collapse:collapse; font-size:13px; background:white; margin-top:10px; }
+    th, td { border:1px solid #ccc; padding:5px; text-align:center; }
+    th { background:#27ae60; color:white; position:sticky; top:0; }
+    tr:nth-child(even) { background:#f9f9f9; }
+    td.number { text-align:right; }
+    button { padding:8px; margin:5px; background:#2980b9; color:white; border:none; border-radius:5px; cursor:pointer; }
+    nav { text-align:center; margin-bottom:15px; }
+  </style>
+  <link rel="stylesheet" href="style.css">
+</head>
+<link rel="manifest" href="manifest.json">
+<body>
+
+<h1>📒 Historique des menus</h1>
+
+<nav>
+  <button onclick="location.href='index.html'">⬅️ Menu du jour</button>
+  <button onclick="location.href='stock.html'">🏪 Gérer le stock</button>
+  <button onclick="location.href='historique-stock.html'">📦 Historique du stock</button>
+  <button onclick="location.href='bilan.html'">📊 Voir le bilan</button>
+</nav>
+
+<table>
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Menu</th>
+      <th>G</th>
+      <th>F</th>
+      <th>Total</th>
+      <th>Riz</th>
+      <th>Maïs</th>
+      <th>Haricot</th>
+      <th>Huile</th>
+      <th>Gari</th>
+      <th>Œufs</th>
+      <th>Légumes</th>
+    </tr>
+  </thead>
+  <tbody id="tableMenus"></tbody>
+</table>
+
+<script>
+let menus = JSON.parse(localStorage.getItem("cantine")) || [];
+let table = document.getElementById("tableMenus");
+
+if (menus.length === 0) {
+  table.innerHTML = `<tr><td colspan="12">Aucun menu enregistré</td></tr>`;
+} else {
+  // Afficher du plus récent au plus ancien
+  menus.reverse().forEach(m => {
+    let ligne = `
+      <tr>
+        <td>${m.date}</td>
+        <td>${m.menu}</td>
+        <td class="number">${m.garcons}</td>
+        <td class="number">${m.filles}</td>
+        <td class="number">${m.totalEleves}</td>
+        <td class="number">${m.riz}</td>
+        <td class="number">${m.mais}</td>
+        <td class="number">${m.haricot}</td>
+        <td class="number">${m.huile}</td>
+        <td class="number">${m.gari}</td>
+        <td class="number">${m.oeufs}</td>
+        <td class="number">${m.legumes}</td>
+      </tr>
+    `;
+    table.innerHTML += ligne;
+  });
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Paramètres</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial; background:#f4f6f8; padding:15px; }
+    h1 { text-align:center; color:#2c3e50; }
+    .box { background:white; padding:15px; border-radius:8px; margin-bottom:15px; }
+    button {
+      width:100%; padding:10px; margin:5px 0;
+      background:#c0392b; color:white; border:none; border-radius:5px;
+      font-size:15px; cursor:pointer;
+    }
+    button:hover { background:#e74c3c; }
+    nav { text-align:center; margin-bottom:15px; }
+    nav button { background:#2980b9; }
+  </style>
+  <link rel="stylesheet" href="style.css">
+</head>
+<link rel="manifest" href="manifest.json">
+<body>
+
+<h1>⚙️ Paramètres</h1>
+
+<nav>
+  <button onclick="location.href='index.html'">⬅️ Menu du jour</button>
+  <button onclick="location.href='stock.html'">🏪 Gérer le stock</button>
+  <button onclick="location.href='historique.html'">📒 Historique des menus</button>
+  <button onclick="location.href='historique-stock.html'">📦 Historique du stock</button>
+</nav>
+
+<div class="box">
+  <h3>🔄 Restaurer / Réinitialiser</h3>
+  <button onclick="resetStock()">Réinitialiser le stock</button>
+  <button onclick="resetMenus()">Effacer l’historique des menus</button>
+  <button onclick="resetHistoriqueStock()">Effacer l’historique du stock</button>
+  <button onclick="resetAll()">Tout réinitialiser</button>
+</div>
+
+<script>
+function resetStock() {
+  localStorage.setItem("stock", JSON.stringify({
+    riz:0, mais:0, haricot:0, huile:0,
+    sel:0, gari:0, oeufs:0, legumes:0
+  }));
+  alert("✅ Stock réinitialisé");
+}
+
+function resetMenus() {
+  localStorage.removeItem("cantine");
+  alert("✅ Historique des menus effacé");
+}
+
+function resetHistoriqueStock() {
+  localStorage.removeItem("historiqueStock");
+  alert("✅ Historique du stock effacé");
+}
+
+function resetAll() {
+  localStorage.clear();
+  alert("✅ Toutes les données ont été réinitialisées");
+}
+</script>
+
+</body>
+</html>

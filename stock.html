@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Stock des vivres</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 15px;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    .box {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+    label {
+      font-weight: bold;
+      margin-top: 10px;
+      display: block;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background: #e67e22;
+      color: white;
+      font-size: 16px;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+  <link rel="stylesheet" href="style.css">
+</head>
+<link rel="manifest" href="manifest.json">
+<body>
+
+<h1>🏪 Stock des vivres</h1>
+
+<div class="box">
+  <label>Date d'achat</label>
+  <input type="date" id="dateAchat">
+
+  <label>Produit</label>
+  <select id="produit">
+    <option value="riz">Riz</option>
+    <option value="mais">Maïs</option>
+    <option value="haricot">Haricot</option>
+    <option value="huile">Huile</option>
+    <option value="sel">Sel iodé</option>
+    <option value="gari">Gari</option>
+    <option value="oeufs">Œufs</option>
+    <option value="legumes">Légumes</option>
+  </select>
+
+  <label>Quantité achetée (kg)</label>
+  <input type="number" step="0.01" id="quantite">
+
+  <button onclick="ajouterStock()">➕ Ajouter au stock</button>
+</div>
+
+<div class="box" id="etatStock">
+  Aucun stock enregistré
+</div>
+
+<script>
+function ajouterStock() {
+  let stock = JSON.parse(localStorage.getItem("stock")) || {
+    riz: 0, mais: 0, haricot: 0, huile: 0,
+    sel: 0, gari: 0, oeufs: 0, legumes: 0
+  };
+
+  let produit = document.getElementById("produit").value;
+  let qte = Number(document.getElementById("quantite").value) || 0;
+  let date = document.getElementById("dateAchat").value;
+
+  if (qte <= 0) {
+    alert("❌ Entre une quantité valide");
+    return;
+  }
+
+  // Mise à jour du stock
+  stock[produit] += qte;
+  localStorage.setItem("stock", JSON.stringify(stock));
+
+  // Historique du stock
+  let historiqueStock = JSON.parse(localStorage.getItem("historiqueStock")) || [];
+  historiqueStock.push({
+    date: date,
+    produit: produit,
+    entree: qte,
+    sortie: 0,
+    restant: stock[produit]
+  });
+  localStorage.setItem("historiqueStock", JSON.stringify(historiqueStock));
+
+  afficherStock();
+  alert("✅ Stock mis à jour");
+}
+
+function afficherStock() {
+  let stock = JSON.parse(localStorage.getItem("stock"));
+  if (!stock) return;
+
+  document.getElementById("etatStock").innerHTML = `
+    <h3>📦 Stock actuel</h3>
+    <p>Riz : ${stock.riz} kg</p>
+    <p>Maïs : ${stock.mais} kg</p>
+    <p>Haricot : ${stock.haricot} kg</p>
+    <p>Huile : ${stock.huile} kg</p>
+    <p>Sel iodé : ${stock.sel} kg</p>
+    <p>Gari : ${stock.gari} kg</p>
+    <p>Œufs : ${stock.oeufs} kg</p>
+    <p>Légumes : ${stock.legumes} kg</p>
+  `;
+}
+
+afficherStock();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Cantine scolaire</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Lien vers ton CSS global -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Lien vers le manifest PWA -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Couleur de la barre d’adresse mobile -->
+  <meta name="theme-color" content="#27ae60">
+</head>
+<body>
+
+  <h1>🍽️ Menu du jour</h1>
+
+  <div class="box">
+    <label>Date</label>
+    <input type="date" id="date">
+
+    <label>Menu du jour</label>
+    <textarea id="menu" placeholder="Ex : Riz gras + jus de tomate"></textarea>
+  </div>
+
+  <div class="box">
+    <label>Élèves servis</label>
+    <div class="row">
+      <input type="number" id="garcons" placeholder="Garçons" oninput="majTotal()">
+      <input type="number" id="filles" placeholder="Filles" oninput="majTotal()">
+    </div>
+    <input type="number" id="totalEleves" placeholder="Total" readonly>
+  </div>
+
+  <div class="box">
+    <label>Produits utilisés (en kg)</label>
+    <input type="number" id="riz" step="0.01" placeholder="Riz (kg)">
+    <input type="number" id="mais" step="0.01" placeholder="Maïs (kg)">
+    <input type="number" id="haricot" step="0.01" placeholder="Haricot (kg)">
+    <input type="number" id="huile" step="0.01" placeholder="Huile (kg)">
+    <input type="number" id="sel" step="0.01" placeholder="Sel iodé (kg)">
+    <input type="number" id="gari" step="0.01" placeholder="Gari (kg)">
+    <input type="number" id="oeufs" step="0.01" placeholder="Œufs (kg)">
+    <input type="number" id="legumes" step="0.01" placeholder="Légumes (kg)">
+  </div>
+
+  <button onclick="enregistrerMenu()">💾 Enregistrer</button>
+
+  <nav>
+    <button onclick="location.href='stock.html'">🏪 Stock</button>
+    <button onclick="location.href='historique.html'">📒 Historique menus</button>
+    <button onclick="location.href='historique-stock.html'">📦 Historique stock</button>
+    <button onclick="location.href='bilan.html'">📊 Bilan</button>
+    <button onclick="location.href='parametres.html'">⚙️ Paramètres</button>
+  </nav>
+
+  <!-- Script principal -->
+  <script>
+  function majTotal() {
+    let garcons = Number(document.getElementById("garcons").value) || 0;
+    let filles = Number(document.getElementById("filles").value) || 0;
+    document.getElementById("totalEleves").value = garcons + filles;
+  }
+
+  function enregistrerMenu() {
+    let stock = JSON.parse(localStorage.getItem("stock")) || {
+      riz:0, mais:0, haricot:0, huile:0,
+      sel:0, gari:0, oeufs:0, legumes:0
+    };
+
+    let produits = {
+      riz: Number(document.getElementById("riz").value) || 0,
+      mais: Number(document.getElementById("mais").value) || 0,
+      haricot: Number(document.getElementById("haricot").value) || 0,
+      huile: Number(document.getElementById("huile").value) || 0,
+      sel: Number(document.getElementById("sel").value) || 0,
+      gari: Number(document.getElementById("gari").value) || 0,
+      oeufs: Number(document.getElementById("oeufs").value) || 0,
+      legumes: Number(document.getElementById("legumes").value) || 0
+    };
+
+    for (let p in produits) {
+      if (produits[p] > stock[p]) {
+        alert("❌ Stock insuffisant pour " + p);
+        return;
+      }
+    }
+
+    for (let p in produits) {
+      stock[p] -= produits[p];
+    }
+    localStorage.setItem("stock", JSON.stringify(stock));
+
+    let historiqueStock = JSON.parse(localStorage.getItem("historiqueStock")) || [];
+    for (let p in produits) {
+      if (produits[p] > 0) {
+        historiqueStock.push({
+          date: document.getElementById("date").value,
+          produit: p,
+          entree: 0,
+          sortie: produits[p],
+          restant: stock[p]
+        });
+      }
+    }
+    localStorage.setItem("historiqueStock", JSON.stringify(historiqueStock));
+
+    let menu = {
+      date: document.getElementById("date").value,
+      menu: document.getElementById("menu").value,
+      garcons: Number(document.getElementById("garcons").value) || 0,
+      filles: Number(document.getElementById("filles").value) || 0,
+      totalEleves: Number(document.getElementById("totalEleves").value) || 0,
+      ...produits
+    };
+
+    let historiqueMenus = JSON.parse(localStorage.getItem("cantine")) || [];
+    historiqueMenus.push(menu);
+    localStorage.setItem("cantine", JSON.stringify(historiqueMenus));
+
+    alert("✅ Menu enregistré et stock mis à jour");
+  }
+
+  // Enregistrement du service worker
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js")
+      .then(() => console.log("✅ Service Worker enregistré"))
+      .catch(err => console.error("❌ Erreur SW:", err));
+  }
+  </script>
+
+</body>
+</html>

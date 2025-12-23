@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Bilan cantine</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+    nav {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    nav button {
+      margin: 5px;
+      padding: 10px 15px;
+      background: #2980b9;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    nav button:hover {
+      background: #1f6391;
+    }
+    .box {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background: #27ae60;
+      color: white;
+    }
+    tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+    canvas {
+      margin-top: 20px;
+    }
+  </style>
+  <link rel="stylesheet" href="style.css">
+</head>
+<link rel="manifest" href="manifest.json">
+<body>
+
+<h1>📊 Bilan de la cantine</h1>
+
+<nav>
+  <button onclick="afficherBilan('semaine')">Bilan hebdomadaire</button>
+  <button onclick="afficherBilan('mois')">Bilan mensuel</button>
+  <button onclick="location.href='index.html'">🍽️ Menu du jour</button>
+  <button onclick="location.href='stock.html'">🏪 Stock</button>
+  <button onclick="location.href='historique.html'">📒 Historique menus</button>
+  <button onclick="location.href='historique-stock.html'">📦 Historique stock</button>
+  <button onclick="location.href='parametres.html'">⚙️ Paramètres</button>
+</nav>
+
+<div class="box" id="resultat">
+  Choisissez une période pour voir le bilan
+</div>
+
+<canvas id="graphProduits"></canvas>
+
+<script>
+function afficherBilan(type) {
+  let menus = JSON.parse(localStorage.getItem("cantine")) || [];
+  if (menus.length === 0) {
+    document.getElementById("resultat").innerHTML = "Aucun menu enregistré";
+    return;
+  }
+
+  let maintenant = new Date();
+  let debut, fin;
+
+  if (type === "semaine") {
+    let jour = maintenant.getDay(); // 0=dimanche, 1=lundi...
+    let diffLundi = (jour === 0 ? -6 : 1 - jour);
+    debut = new Date(maintenant);
+    debut.setDate(maintenant.getDate() + diffLundi);
+    debut.setHours(0,0,0,0);
+
+    fin = new Date(debut);
+    fin.setDate(debut.getDate() + 6);
+    fin.setHours(23,59,59,999);
+  } else if (type === "mois") {
+    debut = new Date(maintenant.getFullYear(), maintenant.getMonth(), 1);
+    fin = new Date(maintenant.getFullYear(), maintenant.getMonth()+1, 0);
+    fin.setHours(23,59,59,999);
+  }
+
+  let totalGarcons=0, totalFilles=0, totalEleves=0;
+  let totalProduits = { riz:0, mais:0, haricot:0, huile:0, sel:0, gari:0, oeufs:0, legumes:0 };
+
+  menus.forEach(m => {
+    let dateMenu = new Date(m.date);
+    if (dateMenu >= debut && dateMenu <= fin) {
+      totalGarcons += m.garcons;
+      totalFilles += m.filles;
+      totalEleves += m.totalEleves;
+      totalProduits.riz += m.riz;
+      totalProduits.mais += m.mais;
+      totalProduits.haricot += m.haricot;
+      totalProduits.huile += m.huile;
+      totalProduits.sel += m.sel;
+      totalProduits.gari += m.gari;
+      totalProduits.oeufs += m.oeufs;
+      totalProduits.legumes += m.legumes;
+    }
+  });
+
+  document.getElementById("resultat").innerHTML = `
+    <h3>👨‍👩‍👧‍👦 Élèves servis</h3>
+    <p>Garçons : ${totalGarcons}</p>
+    <p>Filles : ${totalFilles}</p>
+    <p>Total : ${totalEleves}</p>
+
+    <h3>🍽️ Produits consommés</h3>
+    <table>
+      <tr><th>Produit</th><th>Quantité (kg)</th></tr>
+      <tr><td>Riz</td><td>${totalProduits.riz}</td></tr>
+      <tr><td>Maïs</td><td>${totalProduits.mais}</td></tr>
+      <tr><td>Haricot</td><td>${totalProduits.haricot}</td></tr>
+      <tr><td>Huile</td><td>${totalProduits.huile}</td></tr>
+      <tr><td>Sel iodé</td><td>${totalProduits.sel}</td></tr>
+      <tr><td>Gari</td><td>${totalProduits.gari}</td></tr>
+      <tr><td>Œufs</td><td>${totalProduits.oeufs}</td></tr>
+      <tr><td>Légumes</td><td>${totalProduits.legumes}</td></tr>
+    </table>
+  `;
+
+  // Graphique Chart.js
+  let ctx = document.getElementById('graphProduits').getContext('2d');
+  if (window.barGraph) window.barGraph.destroy(); // éviter doublons
+  window.barGraph = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Riz', 'Maïs', 'Haricot', 'Huile', 'Sel', 'Gari', 'Œufs', 'Légumes'],
+      datasets: [{
+        label: 'Consommation (kg)',
+        data: [
+          totalProduits.riz, totalProduits.mais, totalProduits.haricot,
+          totalProduits.huile, totalProduits.sel, totalProduits.gari,
+          totalProduits.oeufs, totalProduits.legumes
+        ],
+        backgroundColor: [
+          '#e74c3c','#f39c12','#27ae60','#2980b9',
+          '#8e44ad','#d35400','#2ecc71','#16a085'
+        ]
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        title: { display: true, text: 'Consommation des produits' }
+      }
+    }
+  });
+}
+</script>
+
+</body>
+</html>
